@@ -1,5 +1,15 @@
 import AppKit
+import Observation
 import SwiftUI
+
+/// Where the anchor arrow sits, measured from the panel's left edge.
+@Observable
+@MainActor
+final class PanelArrowAnchor {
+  var midXFromLeft: CGFloat = DesignTokens.popoverWidth / 2
+  static let height: CGFloat = 8
+  static let width: CGFloat = 18
+}
 
 /// Borderless non-activating panel anchored below a status item button.
 /// Replaces NSPopover, which positions unreliably for status items
@@ -8,6 +18,7 @@ import SwiftUI
 final class PanelController {
   private let panel: NSPanel
   private let hostingController: NSViewController & PanelSizing
+  private let arrowAnchor = PanelArrowAnchor()
   private var clickOutsideMonitor: Any?
 
   var isShown: Bool { panel.isVisible }
@@ -28,7 +39,10 @@ final class PanelController {
     panel.hidesOnDeactivate = false
 
     let controller = SizingHostingController(
-      rootView: content.background(PanelBackground())
+      rootView:
+        content
+        .padding(.top, PanelArrowAnchor.height)
+        .background(PanelBackground(arrow: arrowAnchor))
     )
     hostingController = controller
     panel.contentViewController = controller
@@ -57,7 +71,8 @@ final class PanelController {
     panel.orderOut(nil)
   }
 
-  /// Centers the panel under the anchor button, clamped to the screen.
+  /// Centers the panel under the anchor button, clamped to the screen,
+  /// and points the arrow at the button's center.
   private func position(relativeTo button: NSStatusBarButton?) {
     guard let screen = button?.window?.screen ?? NSScreen.main else { return }
     let size = panel.frame.size
@@ -66,8 +81,11 @@ final class PanelController {
 
     var x = anchorMidX - size.width / 2
     x = min(max(x, screen.frame.minX + 8), screen.frame.maxX - size.width - 8)
-    let y = menuBarBottom - size.height - 4
+    let y = menuBarBottom - size.height
     panel.setFrameOrigin(NSPoint(x: x, y: y))
+
+    let inset = PanelArrowAnchor.width / 2 + 12
+    arrowAnchor.midXFromLeft = min(max(anchorMidX - x, inset), size.width - inset)
   }
 
   private func installClickOutsideMonitor() {
@@ -101,14 +119,39 @@ private final class SizingHostingController<Content: View>: NSHostingController<
   }
 }
 
-/// Rounded material backdrop matching the system popover look.
+/// Rounded material backdrop with an anchor arrow, like NSPopover's chrome.
 private struct PanelBackground: View {
+  var arrow: PanelArrowAnchor
+
   var body: some View {
-    RoundedRectangle(cornerRadius: 12, style: .continuous)
+    let shape = PanelShape(
+      cornerRadius: 12,
+      arrowMidX: arrow.midXFromLeft,
+      arrowWidth: PanelArrowAnchor.width,
+      arrowHeight: PanelArrowAnchor.height
+    )
+    shape
       .fill(.regularMaterial)
-      .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
-      )
+      .overlay(shape.stroke(Color.primary.opacity(0.1), lineWidth: 1))
+  }
+}
+
+/// Rounded rectangle whose top edge carries a popover-style arrow.
+private struct PanelShape: Shape {
+  let cornerRadius: CGFloat
+  let arrowMidX: CGFloat
+  let arrowWidth: CGFloat
+  let arrowHeight: CGFloat
+
+  func path(in rect: CGRect) -> Path {
+    let body = CGRect(
+      x: rect.minX, y: rect.minY + arrowHeight,
+      width: rect.width, height: rect.height - arrowHeight)
+    var path = Path(roundedRect: body, cornerRadius: cornerRadius, style: .continuous)
+    path.move(to: CGPoint(x: arrowMidX - arrowWidth / 2, y: body.minY))
+    path.addLine(to: CGPoint(x: arrowMidX, y: rect.minY))
+    path.addLine(to: CGPoint(x: arrowMidX + arrowWidth / 2, y: body.minY))
+    path.closeSubpath()
+    return path
   }
 }

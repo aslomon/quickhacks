@@ -29,6 +29,19 @@ struct MenuBarAppsSection: View {
         }
       }
     }
+    .task { await pollPermissionWhileMissing() }
+  }
+
+  /// AXIsProcessTrusted has no change notification — poll so the section
+  /// flips to the app list as soon as the user grants access.
+  private func pollPermissionWhileMissing() async {
+    while !Task.isCancelled, !menuBarApps.hasAccessibilityPermission {
+      try? await Task.sleep(for: .seconds(1.5))
+      menuBarApps.refreshPermission()
+      if menuBarApps.hasAccessibilityPermission {
+        menuBarApps.refresh()
+      }
+    }
   }
 
   private var permissionPrompt: some View {
@@ -41,6 +54,11 @@ struct MenuBarAppsSection: View {
       }
       .buttonStyle(.bordered)
       .controlSize(.small)
+      Text(
+        "Already granted? Each rebuild looks like a new app to macOS: remove the old QuickHacks entry under Privacy & Security → Accessibility, then add this one."
+      )
+      .font(.qhCaption)
+      .foregroundStyle(.secondary)
     }
     .padding(.horizontal, DesignTokens.spaceS)
   }
