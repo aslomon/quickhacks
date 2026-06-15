@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="QuickHacks is a small macOS menu bar app for fast everyday system tweaks.">
+    <meta name="theme-color" content="#f6efe8">
+    <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
+    <title>QuickHacks - small macOS system tweaks, one click away</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --accent: #e85d3a;
+        --accent-dark: #ba3f2e;
+        --ink: #1c1917;
+        --muted: #6f6862;
+        --line: rgba(28, 25, 23, 0.11);
+        --paper: #fbf7f2;
+        --surface: #fffdf9;
+        --surface-soft: #f1e9e2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        line-height: 1.5;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .hero {
+        min-height: 92vh;
+        position: relative;
+        display: grid;
+        align-items: center;
+        padding: 32px clamp(20px, 6vw, 80px);
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.34);
+        pointer-events: none;
+      }
+
+      .hero-inner {
+        position: relative;
+        max-width: 1080px;
+        width: 100%;
+        margin: 0 auto;
+        display: grid;
+        gap: 40px;
+      }
+
+      .nav {
+        position: absolute;
+        top: 20px;
+        left: clamp(20px, 6vw, 80px);
+        right: clamp(20px, 6vw, 80px);
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .brand img {
+        width: 34px;
+        height: 34px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 18px;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .hero-copy {
+        max-width: 760px;
+        padding-top: 76px;
+        z-index: 1;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-size: clamp(48px, 8vw, 96px);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .lede {
+        max-width: 620px;
+        margin: 26px 0 0;
+        color: var(--muted);
+        font-size: clamp(19px, 2vw, 24px);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 34px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .button.primary {
+        border-color: transparent;
+        background: var(--accent);
+        color: white;
+      }
+
+      .button.primary:hover {
+        background: var(--accent-dark);
+      }
+
+      .mockup {
+        z-index: 1;
+        width: min(720px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: 0 24px 70px rgba(65, 50, 43, 0.18);
+        overflow: hidden;
+      }
+
+      .mockup-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 56px;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .mockup-bar img {
+        width: 28px;
+        height: 28px;
+      }
+
+      .mockup-title {
+        font-weight: 700;
+      }
+
+      .mockup-content {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        background: var(--line);
+      }
+
+      .mockup-row {
+        min-height: 92px;
+        padding: 18px;
+        background: rgba(255, 253, 249, 0.9);
+      }
+
+      .mockup-row strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .mockup-row span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 70px clamp(20px, 6vw, 80px);
+      }
+
+      section {
+        margin-bottom: 72px;
+      }
+
+      h2 {
+        margin: 0 0 18px;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .section-copy {
+        max-width: 680px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 28px;
+      }
+
+      .feature {
+        border-top: 1px solid var(--line);
+        padding-top: 18px;
+      }
+
+      .feature h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+
+      .feature p,
+      .steps p,
+      .notice p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .steps,
+      .notice {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        padding: 22px;
+      }
+
+      .steps ol {
+        margin: 16px 0 0;
+        padding-left: 22px;
+        color: var(--muted);
+      }
+
+      .steps li + li {
+        margin-top: 8px;
+      }
+
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 28px clamp(20px, 6vw, 80px);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .footer-inner {
+        max-width: 1080px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      @media (max-width: 760px) {
+        .nav {
+          position: relative;
+          inset: auto;
+          margin-bottom: 30px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hero {
+          min-height: auto;
+          padding-top: 20px;
+        }
+
+        .hero-copy {
+          padding-top: 0;
+        }
+
+        .mockup-content,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .footer-inner {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="brand" href="https://github.com/aslomon/quickhacks">
+            <img src="assets/app-icon.svg" alt="" aria-hidden="true">
+            <span>QuickHacks</span>
+          </a>
+          <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#download">Download</a>
+            <a href="https://github.com/aslomon/quickhacks">GitHub</a>
+          </div>
+        </nav>
+
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <h1>QuickHacks</h1>
+            <p class="lede">
+              A small macOS menu bar app for the everyday system tweaks that
+              should not require hunting through settings or running Terminal commands.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="https://github.com/aslomon/quickhacks/releases/latest">Download latest release</a>
+              <a class="button" href="https://github.com/aslomon/quickhacks">View source on GitHub</a>
+            </div>
+          </div>
+
+          <div class="mockup" aria-label="QuickHacks panel preview">
+            <div class="mockup-bar">
+              <img src="assets/app-icon.svg" alt="" aria-hidden="true">
+              <span class="mockup-title">QuickHacks</span>
+            </div>
+            <div class="mockup-content">
+              <div class="mockup-row">
+                <strong>Declutter the menu bar</strong>
+                <span>Hide extra menu bar items behind a separator.</span>
+              </div>
+              <div class="mockup-row">
+                <strong>Keep the Mac awake</strong>
+                <span>Choose 15 minutes, 1 hour, 4 hours, or indefinitely.</span>
+              </div>
+              <div class="mockup-row">
+                <strong>Block Bluetooth takeovers</strong>
+                <span>Disconnect blocked devices when they reconnect.</span>
+              </div>
+              <div class="mockup-row">
+                <strong>Run quick toggles</strong>
+                <span>Hidden files, desktop icons, Dock, disks, and Trash.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section id="features">
+          <h2>One place for small Mac fixes.</h2>
+          <p class="section-copy">
+            QuickHacks lives in the menu bar. Open it when you need a quick
+            switch, then get back to work.
+          </p>
+          <div class="grid">
+            <article class="feature">
+              <h3>Menu bar cleanup</h3>
+              <p>Move noisy icons to the left of the separator and hide them when you do not need them.</p>
+            </article>
+            <article class="feature">
+              <h3>Bluetooth Guard</h3>
+              <p>Block devices that keep stealing audio or reconnecting at the wrong time.</p>
+            </article>
+            <article class="feature">
+              <h3>Keep Awake</h3>
+              <p>Prevent display sleep for a chosen duration, with a simple countdown.</p>
+            </article>
+            <article class="feature">
+              <h3>Quick Toggles</h3>
+              <p>Switch hidden files, desktop icons, Dock auto-hide, eject disks, and empty Trash.</p>
+            </article>
+            <article class="feature">
+              <h3>Local and open source</h3>
+              <p>No account, no sync service, no analytics. The code is public under the MIT license.</p>
+            </article>
+            <article class="feature">
+              <h3>Native macOS</h3>
+              <p>Built with SwiftUI and AppKit for macOS 14 and newer.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="download">
+          <h2>Download and install.</h2>
+          <div class="steps">
+            <p>QuickHacks is distributed through GitHub Releases while notarization is being prepared.</p>
+            <ol>
+              <li>Download the latest ZIP from GitHub Releases.</li>
+              <li>Unzip it and move QuickHacks.app to Applications.</li>
+              <li>Open the app from Applications.</li>
+              <li>If macOS warns that the developer cannot be verified, Control-click the app and choose Open.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section>
+          <h2>Permissions explained.</h2>
+          <p class="section-copy">
+            macOS asks before apps can control sensitive system features.
+            QuickHacks uses those permissions only for the features you choose.
+          </p>
+          <div class="grid">
+            <article class="feature">
+              <h3>Bluetooth</h3>
+              <p>Used to list paired devices and disconnect devices you block.</p>
+            </article>
+            <article class="feature">
+              <h3>Accessibility</h3>
+              <p>Used to open other menu bar apps from the QuickHacks panel.</p>
+            </article>
+            <article class="feature">
+              <h3>Finder Automation</h3>
+              <p>Used for actions such as ejecting disks and emptying Trash.</p>
+            </article>
+          </div>
+        </section>
+
+        <section>
+          <div class="notice">
+            <h2>Open source, early release.</h2>
+            <p>
+              QuickHacks is MIT licensed. The current GitHub release build is
+              ad-hoc signed and not notarized yet, so macOS may show extra
+              security prompts on first launch.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="footer-inner">
+          <span>QuickHacks is maintained by aslomon.</span>
+          <a href="https://github.com/aslomon/quickhacks/blob/main/LICENSE">MIT License</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

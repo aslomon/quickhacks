@@ -1,5 +1,5 @@
 import AppKit
-import ApplicationServices
+@preconcurrency import ApplicationServices
 import Observation
 
 /// One menu bar item belonging to another app, reachable via Accessibility.
@@ -33,7 +33,7 @@ final class MenuBarAppsService {
 
   func requestAccessibilityPermission() {
     let options =
-      [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+      ["AXTrustedCheckOptionPrompt": true] as CFDictionary
     AXIsProcessTrustedWithOptions(options)
     refreshPermission()
   }

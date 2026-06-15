@@ -1,5 +1,5 @@
 import Foundation
-import IOBluetooth
+@preconcurrency import IOBluetooth
 import Observation
 
 /// Snapshot of a paired device for the UI.
@@ -42,7 +42,14 @@ final class BluetoothGuardService: NSObject, ObservableObject {
   }
 
   deinit {
+    MainActor.assumeIsolated {
+      tearDown()
+    }
+  }
+
+  func tearDown() {
     connectNotification?.unregister()
+    connectNotification = nil
   }
 
   func refresh() {

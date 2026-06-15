@@ -1,83 +1,118 @@
 # QuickHacks
 
-A lightweight macOS menu bar app that collects fast, everyday system tweaks in
-one place. SwiftUI, macOS 14+, no dependencies.
+Small macOS system tweaks, one click away.
 
-## Features
+QuickHacks is a lightweight menu bar app for everyday Mac fixes that should
+not require digging through settings or running Terminal commands. It helps you
+clean up a crowded menu bar, keep your Mac awake, stop unwanted Bluetooth
+devices from taking over audio, and run a few useful Finder/Dock toggles.
 
-- **Menu Bar Declutter** — collapse third-party menu bar icons behind a
-  separator (⌘-drag icons to the left of the `⟋` separator to hide them).
-  Optional auto-hide after 15/30/60 s.
-- **Menu bar apps in the panel** — every third-party menu bar app is listed
-  inside the QuickHacks panel with its app icon; clicking it opens that item
-  directly via Accessibility (AXPress on the app's extras menu bar — no Screen
-  Recording permission needed). The menu bar itself stays clean.
-- **Settings tab** — launch at login, GitHub-based update check, and
-  "Move to Applications" installer.
-- **Bluetooth Guard** — see all paired devices, connect/disconnect with one
-  click, and _block_ devices: a blocked device is disconnected automatically
-  the moment it connects (e.g. headphones that keep stealing your audio).
-- **Keep Awake** — prevent display sleep for 15 min / 1 h / 4 h / indefinitely,
-  with a live countdown.
-- **Quick Toggles** — only things Control Center does NOT cover: mute
-  microphone, show hidden files, hide desktop icons, auto-hide Dock, eject all
-  disks, empty Trash.
-- **Launch at login** via `SMAppService`.
+[Website](https://aslomon.github.io/quickhacks/) |
+[Download](https://github.com/aslomon/quickhacks/releases/latest) |
+[Changelog](CHANGELOG.md) |
+[MIT License](LICENSE)
 
-## Build & Run
+<img src="docs/assets/app-icon.svg" alt="QuickHacks app icon" width="128">
 
-Requires Xcode 16+ command line tools.
+## What QuickHacks Does
+
+- **Declutter the menu bar** - hide extra menu bar icons behind a separator.
+- **Open menu bar apps from the panel** - keep the menu bar clean while still
+  reaching third-party menu bar apps quickly.
+- **Block Bluetooth takeovers** - disconnect blocked devices when they reconnect.
+- **Keep Awake** - prevent display sleep for 15 minutes, 1 hour, 4 hours, or indefinitely.
+- **Quick Toggles** - mute microphone, show hidden files, hide desktop icons,
+  auto-hide the Dock, eject disks, and empty Trash.
+- **Launch at login** - start QuickHacks automatically when your Mac starts.
+
+QuickHacks is local-first. There is no account, no sync service, and no analytics.
+
+## Download and Install
+
+1. Download the latest ZIP from
+   [GitHub Releases](https://github.com/aslomon/quickhacks/releases/latest).
+2. Unzip it.
+3. Move `QuickHacks.app` to your Applications folder.
+4. Open `QuickHacks.app`.
+
+Important: the first public GitHub builds are ad-hoc signed and not notarized
+yet. macOS may warn that the developer cannot be verified. If that happens,
+Control-click `QuickHacks.app`, choose **Open**, then confirm.
+
+## Permissions Explained
+
+macOS asks before apps can access sensitive system features. QuickHacks uses
+permissions only for the features you choose:
+
+- **Bluetooth** - lists paired devices and disconnects devices you block.
+- **Accessibility** - opens other apps' menu bar items from the QuickHacks panel.
+- **Finder Automation** - ejects disks and empties Trash.
+
+Launch at login only works from the `.app` bundle, not from `swift run`.
+
+## Build From Source
+
+Requires macOS 14+ and Xcode command line tools.
 
 ```bash
-./Scripts/build-app.sh        # builds build/QuickHacks.app (release, ad-hoc signed)
+git clone https://github.com/aslomon/quickhacks.git
+cd quickhacks
+./Scripts/build-app.sh
 open build/QuickHacks.app
 ```
 
-Development:
+Development checks:
 
 ```bash
-swift build                   # debug build
-swift test                    # unit tests
+swift build
+swift test
+./Scripts/verify-launch.sh
 ```
 
-## Permissions
+Package a local release ZIP:
 
-On first use macOS will ask for:
+```bash
+./Scripts/package-release.sh
+```
 
-- **Bluetooth** — to list paired devices and enforce the blocklist.
-- **Automation (Finder)** — for Empty Trash and Eject all disks.
-- **Accessibility** — to open other apps' menu bar items from the panel.
+Regenerate the app icon:
 
-Launch-at-login only works from the `.app` bundle, not from `swift run`.
+```bash
+./Scripts/generate-icons.sh
+```
 
 ## Architecture
 
-```
+QuickHacks is a native SwiftUI and AppKit macOS app with no third-party
+dependencies.
+
+```text
 Sources/QuickHacks/
-  App/        entry point, NSStatusItem + custom NSPanel (not NSPopover —
-              NSPopover positions unreliably on status items)
-  Design/     design tokens (see DESIGN.md)
-  Services/   one @MainActor service per feature, UserDefaults persistence
-  Views/      SwiftUI panel UI, no business logic
+  App/        entry point, status items, and custom panel controller
+  Design/     design tokens documented in DESIGN.md
+  Services/   one main-actor service per feature
+  Views/      SwiftUI panel UI
 ```
 
-Hard-won platform notes:
+Platform notes:
 
-- Other apps' status window **bounds are masked** by macOS without Screen
-  Recording permission — coordinate-based clicking is impossible. Items are
-  activated via `AXPress` on the app's `AXExtrasMenuBar` instead.
-- The declutter separator must never collapse on launch and never when our
-  own items sit left of it (guarded in `MenuBarDeclutterService`), otherwise
-  the app hides its own controls.
+- Other apps' status window bounds are masked by macOS without Screen Recording
+  permission, so QuickHacks opens menu bar apps through Accessibility actions
+  instead of coordinate clicks.
+- The declutter separator never collapses automatically on launch and refuses
+  to collapse if QuickHacks' own menu bar items are arranged in an unsafe order.
+- Shell-based toggles are isolated in `ShellRunner`, which applies a timeout so
+  failed commands surface as inline errors instead of hanging indefinitely.
 
-Shell-based toggles are isolated in `ShellRunner` so a sandboxed App Store
-build can replace them per feature. See `PRD.md` for full requirements and
-`DESIGN.md` for the design system.
+## Public Release Status
 
-## App Store Notes
+The current GitHub release ZIP is intended for early public use and testing.
+Before broader direct distribution, QuickHacks still needs Developer ID signing
+and notarization. See [RELEASE.md](RELEASE.md) for the release checklist.
 
-The declutter technique (expanding `NSStatusItem`) is the same approach used
-by Hidden Bar, which ships on the Mac App Store. For an MAS build: enable the
-App Sandbox, keep Bluetooth + Apple Events entitlements, and disable the
-`CGSession`/`defaults`-based toggles or replace them with sandbox-safe
-equivalents (`QuickToggleAction` is the single switch point).
+For a Mac App Store build, the shell-based toggles need sandbox-safe
+replacements or store-specific feature flags.
+
+## License
+
+QuickHacks is available under the [MIT License](LICENSE).

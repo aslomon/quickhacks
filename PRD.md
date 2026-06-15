@@ -44,22 +44,23 @@ ship to the Mac App Store.
 
 | Toggle                 | Mechanism                                                            |
 | ---------------------- | -------------------------------------------------------------------- |
-| Dark Mode              | AppleScript via System Events (Automation permission)                |
+| Mute microphone        | AppleScript input volume                                             |
 | Hide desktop icons     | `defaults write com.apple.finder CreateDesktop` + Finder restart     |
 | Show hidden files      | `defaults write com.apple.finder AppleShowAllFiles` + Finder restart |
+| Auto-hide Dock         | `defaults write com.apple.dock autohide` + Dock restart              |
+| Eject all disks        | Finder AppleScript                                                   |
 | Empty Trash            | Finder AppleScript                                                   |
-| Lock Screen            | `CGSession -suspend`                                                 |
-| Screenshot → Clipboard | `screencapture -ic` (interactive region)                             |
 
 ### F5 — Settings (P1)
 
 - Launch at login (`SMAppService.mainApp`).
-- Feature visibility (hide unused sections).
-- About panel with version.
+- GitHub-based update check.
+- Move-to-Applications installer prompt.
+- Version display.
 
 ## 4. Non-Functional Requirements
 
-- SwiftUI UI, AppKit only where required (NSStatusItem, NSPopover).
+- SwiftUI UI, AppKit only where required (NSStatusItem, custom NSPanel).
 - Swift 6 strict concurrency; services are `@MainActor` observable classes.
 - Architecture: Views → Feature stores → Services. No business logic in views.
 - Persistence: `UserDefaults` with Codable models, versioned keys.
@@ -78,6 +79,7 @@ ship to the Mac App Store.
 5. Keep Awake prevents sleep for the chosen duration and auto-expires.
 6. All quick toggles execute and report errors in the UI (no silent failures).
 7. Launch at login toggle reflects real `SMAppService` status.
+8. The bundle includes a custom `.icns` app icon generated from `Resources/AppIcon.svg`.
 
 ## 6. Out of Scope (v1)
 

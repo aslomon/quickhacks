@@ -1,5 +1,7 @@
 .build/
 build/
+dist/
+.playwright-mcp/
 .DS_Store
 *.xcodeproj
 .swiftpm/

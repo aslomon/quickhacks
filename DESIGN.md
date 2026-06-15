@@ -54,6 +54,21 @@ SF Symbols exclusively, `.medium` weight, 13–15 pt, monochrome secondary by
 default; accent-colored when state is active. Menu bar icon: `bolt.square.fill`
 (template). Chevron item: `chevron.left` / `chevron.right`.
 
+## App Icon
+
+The app icon is a deterministic vector asset at `Resources/AppIcon.svg`.
+It uses the warm coral accent on a quiet macOS-style tile with one centered
+custom lightning bolt. The icon must stay text-free, emoji-free, low-detail,
+and recognizable at 16 pt.
+
+Generated launch assets:
+
+- `Resources/QuickHacks.icns` — bundled app icon.
+- `.build/generated-icons/QuickHacks.iconset` — regenerated source iconset.
+
+Regenerate with `./Scripts/generate-icons.sh`; `./Scripts/build-app.sh` does
+this automatically before assembling the app bundle.
+
 ## Motion
 
 - State changes: `.spring(duration: 0.25, bounce: 0.15)`.

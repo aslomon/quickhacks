@@ -10,6 +10,8 @@
     <string>QuickHacks</string>
     <key>CFBundleDisplayName</key>
     <string>QuickHacks</string>
+    <key>CFBundleIconFile</key>
+    <string>QuickHacks</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -23,7 +25,7 @@
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>QuickHacks lists your paired Bluetooth devices and can block unwanted devices from staying connected.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>QuickHacks uses System Events and Finder to toggle dark mode and empty the Trash.</string>
+    <string>QuickHacks uses Finder automation to eject disks and empty the Trash.</string>
     <key>NSHumanReadableCopyright</key>
     <string>© 2026 QuickHacks</string>
 </dict>

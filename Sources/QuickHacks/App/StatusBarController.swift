@@ -20,6 +20,7 @@ final class StatusBarController: NSObject {
 
   func tearDown() {
     services.keepAwake.stop()
+    services.bluetoothGuard.tearDown()
     services.declutter.deactivate()
   }
 
